@@ -136,7 +136,6 @@ module RSpec
 
           a[:description] = "new description"
 
-          pending "Cannot maintain this and provide full `:example_group` backwards compatibility (see GH #1490):("
           expect(b[:description]).to eq("new description")
         end
 
