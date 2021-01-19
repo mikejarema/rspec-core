@@ -8,6 +8,7 @@ on:
       - 'main'
       - '*-maintenance'
       - '*-dev'
+      - 'experimental-github-actions'
   pull_request:
     branches:
       - '*'
@@ -19,14 +20,27 @@ jobs:
   legacy:
     name: Legacy Ruby Builds (${{ matrix.container.version }})
     runs-on: ubuntu-20.04
-    container: ${{ matrix.container.tag }}
+    container:
+      image: ${{ matrix.container.tag }}
+      options: ${{ matrix.container.options }}
     strategy:
       fail-fast: false
+      matrix:
+        container:
+          - version: "Ruby 1.8.7"
+            tag: rspec/ci:1.8.7
+            options: "--add-host rubygems.org:151.101.0.70 --add-host api.rubygems.org:151.101.0.70"
+          - version: "JRuby 1.7 1.8 mode"
+            tag: rspec/ci:jruby-1.7
+            jruby_opts: '--dev --1.8'
+            pre: gem uninstall jruby-openssl
+            options: "--add-host rubygems.org:151.101.0.70 --add-host api.rubygems.org:151.101.0.70"
     env:
       LEGACY_CI: true
       JRUBY_OPTS: ${{ matrix.container.jruby_opts || '--dev' }}
     steps:
       - uses: actions/checkout@v2
+      - run: ${{ matrix.container.pre }}
       - run: script/legacy_setup.sh
       - run: bundle exec bin/rspec
       - run: bundle exec script/cucumber.sh
